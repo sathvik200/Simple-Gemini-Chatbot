@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat with Gemini</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+        .chat-container {
+            width: 350px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .chat-box {
+            height: 300px;
+            overflow-y: auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+        .message {
+            max-width: 80%;
+            margin: 5px;
+            padding: 8px;
+            border-radius: 10px;
+            word-wrap: break-word;
+        }
+        .user {
+            background: #007bff;
+            color: white;
+            align-self: flex-end;
+        }
+        .bot {
+            background: #e0e0e0;
+            align-self: flex-start;
+        }
+        .chat-input {
+            display: flex;
+            padding: 10px;
+            background: #fff;
+            border-top: 1px solid #ccc;
+        }
+        input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            outline: none;
+        }
+        button {
+            padding: 8px 15px;
+            margin-left: 5px;
+            border: none;
+            background: #007bff;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-box" id="chatBox">
+            <div class="message bot">Hello! Ask me anything.</div>
+        </div>
+        <form class="chat-input" onsubmit="sendMessage(event)">
+            <input type="text" id="userInput" placeholder="Type a message..." required>
+            <button type="submit">Send</button>
+        </form>
+    </div>
+
+    <script>
+        async function sendMessage(event) {
+            event.preventDefault();
+            let userInput = document.getElementById("userInput");
+            let chatBox = document.getElementById("chatBox");
+
+            if (userInput.value.trim() === "") return;
+
+            // Append User Message
+            let userMessage = document.createElement("div");
+            userMessage.classList.add("message", "user");
+            userMessage.innerText = userInput.value;
+            chatBox.appendChild(userMessage);
+
+            // Scroll to latest message
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // Send to Backend (Flask)
+            let response = await fetch("/send_message", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message: userInput.value })
+            });
+
+            let data = await response.json();
+
+            // Append Bot Response
+            let botMessage = document.createElement("div");
+            botMessage.classList.add("message", "bot");
+            botMessage.innerText = data.bot;
+            chatBox.appendChild(botMessage);
+
+            // Scroll to latest message
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // Clear Input Field
+            userInput.value = "";
+        }
+    </script>
+</body>
+</html>
